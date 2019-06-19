@@ -14,7 +14,7 @@ PROXY = 'socks5://5.135.58.123:61537'
 apihelper.proxy = {'https': PROXY}
 bot = telebot.TeleBot(TOKEN)
 url = ''
-count_pages = 20
+count_pages = 30
 
 
 def pars_weather_page(url):
