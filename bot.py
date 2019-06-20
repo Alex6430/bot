@@ -44,7 +44,6 @@ def pars_weather_page(url):
         print(temp_fil)
     return weather_list
 
-# pars_weather_page('https://yandex.ru/pogoda/moscow/')
 
 def pars_movi_page(url):
     page = requests.get(url).text
@@ -53,6 +52,44 @@ def pars_movi_page(url):
     movi_list = []
 
     for li in lis:
+        movi = []
+        link_text = li.find('a')
+        href = link_text.get('href')
+        href = url[:28] + '/' + href[8:]
+        image = link_text.find("div", {'class': 'result-item-preview fadeIn animated'})
+        img_str = image.get('style')
+        img = img_str[22:len(img_str) - 27:1]
+        name_title = link_text.find("div", {'class': 'results-item-title'}).text
+        if (name_title == "" or name_title == " "):
+            name_title = "нет названия"
+        try:
+            rating = link_text.find("span", {'class': 'results-item-rating'})
+            rating = rating.find('span').text
+        except:
+            rating = " "
+        year = link_text.find("span", {'class': 'results-item-year'}).text
+        movi.append(name_title)
+        movi.append(img)
+        movi.append(rating)
+        movi.append(year)
+        movi.append(href)
+        movi_list.append(movi)
+        # print(name_title)
+        # print(img)
+        # print(rating)
+        # print(year)
+        # print(href)
+        # print(link_text)
+    return movi_list
+
+
+def pars_youtube_page(url):
+    page = requests.get(url).text
+    soup = BeautifulSoup(page)
+    divs = soup.find_all("div", {'class': 'style-scope ytd-grid-renderer'})
+    movi_list = []
+
+    for li in divs:
         movi = []
         link_text = li.find('a')
         href = link_text.get('href')
@@ -108,7 +145,19 @@ def send_help(but):
         print_weather(but)
         bot.send_message(but.message.chat.id, 'https://yandex.ru/pogoda/moscow')
     elif but.data == "youtube":
-        bot.send_message(but.message.chat.id, 'https://www.youtube.com/')
+        # key = types.InlineKeyboardMarkup()
+        # button_recommended = types.InlineKeyboardButton(text="Рекомендованные", callback_data="recommended")
+        # button_trending = types.InlineKeyboardButton(text="В тренде", callback_data="trending")
+        # button_subscriptions = types.InlineKeyboardButton(text="Подписки", callback_data="subscriptions")
+        # key.add(button_recommended, button_trending, button_subscriptions)
+        # bot.send_message(but.message.chat.id, "выберите что вы хотите смотреть", reply_markup=key)
+        # bot.send_message(but.message.chat.id, 'https://www.youtube.com/')
+        markup = types.InlineKeyboardMarkup()
+        button_recommended = types.InlineKeyboardButton(text='Рекомендованные', url='https://www.youtube.com')
+        button_trending = types.InlineKeyboardButton(text="В тренде", url="https://www.youtube.com/feed/trending")
+        button_subscriptions = types.InlineKeyboardButton(text="Подписки", url="https://www.youtube.com/feed/subscriptions")
+        markup.add(button_recommended, button_trending, button_subscriptions)
+        bot.send_message(but.message.chat.id, "выберите что вы хотите смотреть", reply_markup=markup)
     elif but.data == "choose_movi_yes":
         key = types.InlineKeyboardMarkup()
         button_comedy = types.InlineKeyboardButton(text="Камедия", callback_data="komediia")
@@ -121,6 +170,13 @@ def send_help(but):
         print_movi(but)
     elif but.data == "drama":
         print_movi(but)
+    elif but.data == "recommended":
+
+        bot.send_message(but.message.chat.id, "https://www.youtube.com")
+    elif but.data == "trending":
+        bot.send_message(but.message.chat.id, "https://www.youtube.com/feed/trending")
+    elif but.data == "subscriptions":
+        bot.send_message(but.message.chat.id, "https://www.youtube.com/feed/subscriptions")
 
 
 def print_movi(but):
@@ -172,9 +228,11 @@ def upper(message: Message):
     message.text = message.text.lower()
     val = message.text.find("хочу посмотреть")
     if message.text == 'ютуб':
-        # with urllib.request.urlopen('http://python.org/') as response:
-        #     html = response.read()
-        bot.reply_to(message, 'https://www.youtube.com/')
+        key = types.InlineKeyboardMarkup()
+        button_choose_youtube = types.InlineKeyboardButton(text="ютуб", callback_data="youtube")
+        key.add(button_choose_youtube)
+        bot.send_message(message.chat.id, "нажми кнопку", reply_markup=key)
+        # bot.reply_to(message, 'https://www.youtube.com/')
     elif message.text == 'погода':
         key = types.InlineKeyboardMarkup()
         button_choose_weather = types.InlineKeyboardButton(text="погода", callback_data="Weather")
